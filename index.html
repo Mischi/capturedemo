@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Capture Demo</title>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div id="container"> 
+    <h1>Capture Demo</h1>
+    <input id="sample-input" type="text" name="sample-input">
+    <button id="toggle-syncing">Start/Stop Syncing</button>
+  </div>
+  <script src="/js/html2canvas.min.js"></script>
+  <script>
+    'use strict';
+
+    var socket = io();
+
+    var syncrate = 1000/30;
+    var disposable;
+
+    document.getElementById('toggle-syncing')
+      .addEventListener('click', function() {
+        if (disposable) {
+          clearInterval(disposable);
+          disposable = null;
+        } else {
+          disposable = setInterval(sendScreenshot, syncrate);
+        }
+      });
+
+    socket.on('sync', function(screenshot) {
+      var img = new Image();
+      img.onload = function () {
+        var container = document.getElementById('container');
+        while(container.hasChildNodes()) {
+          container.removeChild(container.lastChild);
+        }
+        container.appendChild(img);
+      };
+      img.src = screenshot;
+    });
+
+    function sendScreenshot() {
+      html2canvas(document.body, {
+        onrendered: function(canvas) {
+          var screenshot = canvas.toDataURL('image/jpg', 0.7);        
+          socket.emit('screenshot', screenshot);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
