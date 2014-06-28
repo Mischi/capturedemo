@@ -1,6 +1,6 @@
-var app = require('express')();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var app   = require('express')(),
+    http  = require('http').Server(app),
+    io    = require('socket.io')(http);
 
 
 app.get('/', function(req, res) {
@@ -12,14 +12,8 @@ app.get('/js/html2canvas.min.js', function(req, res) {
 });
 
 io.on('connection', function(socket) {
-  console.log('user connected');
-
   socket.on('screenshot', function(screenshot) {
     socket.broadcast.emit('sync', screenshot);
-  });
-
-  socket.on('disconnect', function() {
-    console.log('user disconnected');
   });
 });
 
